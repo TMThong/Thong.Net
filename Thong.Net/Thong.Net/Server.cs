@@ -41,8 +41,7 @@ namespace Thong.Net
                 Client client1 = new Client(this, client);
                 client1.Start();
                 Clients.Add(client1);
-                ServerHandle?.ClientConnected(client1);
-                Console.WriteLine("Some client connected");
+                ServerHandle?.ClientConnected(client1);            
             }
         }
         public void Stop()
