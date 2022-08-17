@@ -43,7 +43,14 @@ namespace Thong.Net
         public void Connect(String host, int port)
         {
             TcpClient = new TcpClient();
+            TcpClient.Client.ReceiveBufferSize = 1048576;
+            TcpClient.Client.SendBufferSize = 1048576;
+            TcpClient.NoDelay = true;
             TcpClient.Connect(host, port);
+            if (!IsConnected)
+            {
+                return;
+            }
             initIO();
         }
 
@@ -66,60 +73,75 @@ namespace Thong.Net
         }
         void sendThread()
         {
-
-            while (IsConnected && Writer != null)
+            try
             {
-                try
+
+                while (IsConnected && Writer != null)
                 {
-                    while (Messages.Count > 0)
+                    try
                     {
-                        Message m = (Message)Messages[0];
-                        writeMessage(m);
-                        Messages.RemoveAt(0);
-                        Thread.Sleep(10);
+                        while (Messages.Count > 0)
+                        {
+                            Message m = (Message)Messages[0];
+                            writeMessage(m);
+                            Messages.RemoveAt(0);
+                            Thread.Sleep(10);
+                        }
+                        lock (LookObject)
+                        {
+                            Monitor.Wait(LookObject);
+                        }
                     }
-                    lock (LookObject)
+                    catch (IOException ex)
                     {
-                        Monitor.Wait(LookObject);
+                        this.Disconnect();
+                        break;
                     }
                 }
-                catch(IOException ex)
-                {
-                    break;
-                }
+                Messages.Clear();
             }
-            Messages.Clear();
+            catch (Exception e)
+            {
+
+            }
             Disconnect();
         }
         void readThread()
         {
-
-
-            while (IsConnected && Reader != null)
+            try
             {
-                try
+
+
+                while (IsConnected && Reader != null)
                 {
-                    Message m;
-                    while ((m = readMessage()) != null)
+                    try
                     {
+                        Message m;
+                        while ((m = readMessage()) != null)
+                        {
 
-                        Handle?.OnHandle(m);
+                            Handle?.OnHandle(m);
 
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        Disconnect();
+                        return;
                     }
                 }
-                catch (IOException ex)
-                {
-                    
-                    break;
-                }
-            }
 
+
+            }
+            catch (Exception e)
+            {
+
+            }
             Disconnect();
         }
 
         protected virtual void writeMessage(Message message)
         {
-
             Writer.Write(message.Command);
             byte[] buffer = message.Data;
             Writer.Write(buffer.Length);
@@ -143,14 +165,22 @@ namespace Thong.Net
         }
         public void Disconnect()
         {
-            TcpClient?.Close();
-            server?.Clients.Remove(this);
-            server?.ServerHandle?.ClientDisconnected(this);
-            TcpClient = null;
-            Writer?.Close();
-            Writer = null;
-            Reader?.Close();
-            Reader = null;
+            if (TcpClient != null)
+            {
+                lock (LookObject)
+                {
+                    Monitor.Pulse(LookObject);
+                }
+                TcpClient?.Close();
+                server?.Clients.Remove(this);
+                server?.ServerHandle?.ClientDisconnected(this);
+                Handle?.OnDisconected();
+                TcpClient = null;
+                Writer?.Close();
+                Writer = null;
+                Reader?.Close();
+                Reader = null;
+            }
         }
     }
 }

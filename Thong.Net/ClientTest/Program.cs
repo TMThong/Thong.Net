@@ -25,7 +25,11 @@ namespace ClientTest
         }
         public class handleMessageTest : IHandleMessage
         {
-            
+            public void OnDisconected()
+            {
+                Console.WriteLine("Server Close");
+            }
+
             public void OnHandle(Message message)
             {
                 switch (message.Command)

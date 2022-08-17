@@ -9,5 +9,6 @@ namespace Thong.Net
     public interface IHandleMessage
     {
          void OnHandle(Message message);
+         void OnDisconected();
     }
 }

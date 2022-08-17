@@ -15,7 +15,10 @@ namespace Thong.Net
         internal TcpListener Listener;
         public bool IsRunning { get; protected set; }
         public int Port { get; }
-        public IServerHandle ServerHandle { get;  set; }
+        public IServerHandle ServerHandle { get; set; }
+
+        private Thread StartThread { get; set; }
+
         public Server(int port)
         {
             Listener = new TcpListener(port);
@@ -27,11 +30,10 @@ namespace Thong.Net
             {
                 IsRunning = true;
                 Listener.Start();
-                Thread thread = new Thread(Start_);
-                thread.IsBackground = true;
-                thread.Start();
+                StartThread = new Thread(Start_);
+                StartThread.IsBackground = true;
+                StartThread.Start();
             }
-            
         }
         void Start_()
         {
@@ -41,16 +43,17 @@ namespace Thong.Net
                 Client client1 = new Client(this, client);
                 client1.Start();
                 Clients.Add(client1);
-                ServerHandle?.ClientConnected(client1);            
+                ServerHandle?.ClientConnected(client1);
             }
         }
         public void Stop()
         {
             if (IsRunning)
             {
+                StartThread?.Interrupt();
                 IsRunning = true;
                 Listener.Stop();
-                foreach(var c in Clients.ToArray())
+                foreach (var c in Clients.ToArray())
                 {
                     c.Disconnect();
                 }
@@ -58,16 +61,16 @@ namespace Thong.Net
         }
         public void SendAll(Message message)
         {
-            foreach(var c in Clients.ToArray())
+            foreach (var c in Clients.ToArray())
             {
                 c.SendMessage(message);
             }
         }
-        public void SendAll(Message message , Client client)
+        public void SendAll(Message message, Client client)
         {
             foreach (var c in Clients.ToArray())
             {
-                if(c != client)
+                if (c != client)
                 {
                     c.SendMessage(message);
                 }

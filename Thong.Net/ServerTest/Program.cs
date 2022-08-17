@@ -37,6 +37,12 @@ namespace ServerTest
         {
             Server = s;
         }
+
+        public void OnDisconected()
+        {
+           
+        }
+
         public void OnHandle(Message message)
         {
             switch (message.Command)
