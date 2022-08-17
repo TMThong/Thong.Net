@@ -3,10 +3,128 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Collections;
 namespace Thong.Net
 {
-    internal class Client
+    public class Client
     {
+        internal Server server;
+        public TcpClient TcpClient { get; protected set; }
+        protected BinaryReader Reader { get; set; }
+        protected BinaryWriter Writer { get; set; }
+        private ArrayList Messages = new ArrayList();
+        private Object LookObject = new object();
+        public IHandleMessage Handle { get; set; }
+        public bool IsConnected
+        {
+            get
+            {
+                if (TcpClient == null)
+                {
+                    return false;
+                }
+                return TcpClient.Connected;
+            }
+        }
+        internal Client(Server server, TcpClient tcpClient)
+        {
+            this.server = server;
+            TcpClient = tcpClient;
+        }
+        public Client()
+        {
+
+        }
+        public void Connect(String host , int port)
+        {
+            TcpClient = new TcpClient();
+            TcpClient.Connect(host, port);
+            initIO();
+        }
+         
+        internal void initIO()
+        {
+            if (TcpClient != null)
+            {
+                Reader = new BinaryReader(TcpClient.GetStream());
+                Writer = new BinaryWriter(TcpClient.GetStream());
+            }
+        }
+        public void Start()
+        {
+
+        }
+        void sendThread()
+        {
+            while(IsConnected && Writer != null)
+            {
+                while(Messages.Count > 0)
+                {
+                    Message m = (Message) Messages[0];
+                    writeMessage(m);
+                    Messages.RemoveAt(0);
+                    Thread.Sleep(10);
+                }
+                lock (LookObject)
+                {
+                   Monitor.Wait(this);
+                }
+            }
+            Messages.Clear();
+
+        }
+        void readThread()
+        {
+
+            while(IsConnected && Reader != null)
+            {
+                Message m;
+                while((m = readMessage()) != null)
+                {
+                    
+                        Handle?.OnHandle(m);
+                   
+                }
+            }
+        }
+        
+        protected virtual void writeMessage(Message message)
+        {           
+           
+           Writer.Write(message.Command);
+            byte[] buffer = message.Data;
+            Writer.Write(buffer.Length);
+            Writer.Write(buffer);
+           Writer.Flush();
+        }
+        protected virtual Message readMessage()
+        {
+            byte command = Reader.ReadByte();
+            byte[] buffer = Reader.ReadBytes(Reader.ReadInt32());
+
+            return new Message(command, buffer);
+        }
+        public void SendMessage(Message m)
+        {
+            Messages.Add(m);
+            lock (LookObject)
+            {
+                Monitor.Pulse(LookObject);
+            }
+        }
+        public void Disconnect()
+        {
+            TcpClient?.Close();
+            server?.Clients.Remove(this);
+            TcpClient = null;
+            Writer?.Close();
+            Writer = null;
+            Reader?.Close();
+            Reader = null;
+        }
     }
 }

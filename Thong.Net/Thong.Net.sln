@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerTest", "ServerTest\Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thong.Net", "Thong.Net\Thong.Net.csproj", "{359A2BC2-650B-408B-A262-48F855A93503}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientTest", "ClientTest\ClientTest.csproj", "{D00AE57A-5F05-47E2-BFA8-E79D74CE9E97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientTest", "ClientTest\ClientTest.csproj", "{891BB522-371D-4707-B371-C42ED67C3F37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{359A2BC2-650B-408B-A262-48F855A93503}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{359A2BC2-650B-408B-A262-48F855A93503}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{359A2BC2-650B-408B-A262-48F855A93503}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D00AE57A-5F05-47E2-BFA8-E79D74CE9E97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D00AE57A-5F05-47E2-BFA8-E79D74CE9E97}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D00AE57A-5F05-47E2-BFA8-E79D74CE9E97}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D00AE57A-5F05-47E2-BFA8-E79D74CE9E97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{891BB522-371D-4707-B371-C42ED67C3F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{891BB522-371D-4707-B371-C42ED67C3F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{891BB522-371D-4707-B371-C42ED67C3F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{891BB522-371D-4707-B371-C42ED67C3F37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

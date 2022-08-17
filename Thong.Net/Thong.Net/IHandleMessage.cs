@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ClientTest
+namespace Thong.Net
 {
-    public class Class1
+    public interface IHandleMessage
     {
+         void OnHandle(Message message);
     }
 }
