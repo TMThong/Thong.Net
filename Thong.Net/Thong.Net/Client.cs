@@ -27,13 +27,14 @@ namespace Thong.Net
                 {
                     return false;
                 }
-                return TcpClient.Connected;
+                return TcpClient.Connected ;
             }
         }
         internal Client(Server server, TcpClient tcpClient)
         {
             this.server = server;
             TcpClient = tcpClient;
+            initIO();
         }
         public Client()
         {
@@ -56,40 +57,49 @@ namespace Thong.Net
         }
         public void Start()
         {
-
+            Thread thread1 = new Thread(sendThread);
+            thread1.IsBackground = true;
+            thread1.Start();
+            Thread thread2 = new Thread(readThread);
+            thread2.IsBackground = true;
+            thread2.Start();
         }
         void sendThread()
         {
-            while(IsConnected && Writer != null)
-            {
-                while(Messages.Count > 0)
+            
+                while (IsConnected && Writer != null)
                 {
-                    Message m = (Message) Messages[0];
-                    writeMessage(m);
-                    Messages.RemoveAt(0);
-                    Thread.Sleep(10);
-                }
-                lock (LookObject)
-                {
-                   Monitor.Wait(this);
-                }
-            }
+                    while (Messages.Count > 0)
+                    {
+                        Message m = (Message)Messages[0];
+                        writeMessage(m);
+                        Messages.RemoveAt(0);
+                        Thread.Sleep(10);
+                    }
+                    lock (LookObject)
+                    {
+                        Monitor.Wait(LookObject);
+                    }
+                }           
             Messages.Clear();
-
+            Disconnect();
         }
         void readThread()
         {
 
-            while(IsConnected && Reader != null)
-            {
-                Message m;
-                while((m = readMessage()) != null)
+            
+                while (IsConnected && Reader != null)
                 {
-                    
+                    Message m;
+                    while ((m = readMessage()) != null)
+                    {
+
                         Handle?.OnHandle(m);
-                   
+
+                    }
                 }
-            }
+            
+            Disconnect();
         }
         
         protected virtual void writeMessage(Message message)
@@ -102,11 +112,10 @@ namespace Thong.Net
            Writer.Flush();
         }
         protected virtual Message readMessage()
-        {
-            byte command = Reader.ReadByte();
-            byte[] buffer = Reader.ReadBytes(Reader.ReadInt32());
-
-            return new Message(command, buffer);
+        {           
+                byte command = Reader.ReadByte();
+                byte[] buffer = Reader.ReadBytes(Reader.ReadInt32());
+                return new Message(command, buffer);          
         }
         public void SendMessage(Message m)
         {
@@ -115,16 +124,19 @@ namespace Thong.Net
             {
                 Monitor.Pulse(LookObject);
             }
+            
         }
         public void Disconnect()
         {
             TcpClient?.Close();
             server?.Clients.Remove(this);
+            server?.ServerHandle?.ClientConnected(this);
             TcpClient = null;
             Writer?.Close();
             Writer = null;
             Reader?.Close();
             Reader = null;
+            
         }
     }
 }

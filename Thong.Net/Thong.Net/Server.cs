@@ -15,6 +15,7 @@ namespace Thong.Net
         internal TcpListener Listener;
         public bool IsRunning { get; protected set; }
         public int Port { get; }
+        public IServerHandle ServerHandle { get;  set; }
         public Server(int port)
         {
             Listener = new TcpListener(port);
@@ -37,6 +38,10 @@ namespace Thong.Net
             while (IsRunning)
             {
                 TcpClient client = Listener.AcceptTcpClient();
+                Client client1 = new Client(this, client);
+                client1.Start();
+                Clients.Add(client1);
+                ServerHandle?.ClientConnected(client1);
                 Console.WriteLine("Some client connected");
             }
         }
@@ -46,7 +51,29 @@ namespace Thong.Net
             {
                 IsRunning = true;
                 Listener.Stop();
+                foreach(var c in Clients.ToArray())
+                {
+                    c.Disconnect();
+                }
             }
         }
+        public void SendAll(Message message)
+        {
+            foreach(var c in Clients.ToArray())
+            {
+                c.SendMessage(message);
+            }
+        }
+        public void SendAll(Message message , Client client)
+        {
+            foreach (var c in Clients.ToArray())
+            {
+                if(c != client)
+                {
+                    c.SendMessage(message);
+                }
+            }
+        }
+
     }
 }
